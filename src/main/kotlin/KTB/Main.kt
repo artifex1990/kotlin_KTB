@@ -3,6 +3,7 @@ package KTB
 import java.io.File
 
 const val SEPARATOR = '|'
+const val MAX_WORDS_FOR_KNOWS = 3
 
 data class Word(
     val original: String,
@@ -13,21 +14,33 @@ data class Word(
 fun main() {
     val dictionary: List<Word> = loadDictionary()
 
-    while(true) {
-        println("""
+    while (true) {
+        println(
+            """
             Меню: 
             1 – Учить слова
             2 – Статистика
             0 – Выход
-        """.trimIndent())
+        """.trimIndent()
+        )
 
         print("Введите пункт: ")
-        when(readln()) {
+        when (readln()) {
             "1" -> println("Учить слова")
-            "2" -> println("Статистика")
+            "2" -> {
+                println("Статистика")
+                val learnedCount = dictionary.filter { word -> word.correctAnswersCount >= MAX_WORDS_FOR_KNOWS }.size
+                val totalCount = dictionary.size
+                val percent = (100.0 * learnedCount / totalCount).toInt()
+
+                println("Выучено $learnedCount из $totalCount слов | $percent%")
+
+            }
+
             "0" -> break
             else -> println("Введите число 1, 2 или 0")
         }
+        println()
     }
 }
 
