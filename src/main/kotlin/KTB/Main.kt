@@ -7,12 +7,34 @@ const val SEPARATOR = '|'
 data class Word(
     val original: String,
     val translate: String,
-    var correctAnswersCount: Any = 0,
+    var correctAnswersCount: Int = 0,
 )
 
 fun main() {
+    val dictionary: List<Word> = loadDictionary()
+
+    while(true) {
+        println("""
+            Меню: 
+            1 – Учить слова
+            2 – Статистика
+            0 – Выход
+        """.trimIndent())
+
+        print("Введите пункт: ")
+        when(readln()) {
+            "1" -> println("Учить слова")
+            "2" -> println("Статистика")
+            "0" -> break
+            else -> println("Введите число 1, 2 или 0")
+        }
+    }
+}
+
+fun loadDictionary(): List<Word> {
     val dictionary: MutableList<Word> = mutableListOf()
     val fileWords: File = File("words.txt")
+
     if (!fileWords.exists()) {
         fileWords.createNewFile()
 
@@ -33,14 +55,5 @@ fun main() {
         )
     }
 
-    for (word in dictionary) {
-        println("""
-            Оригинал: ${word.original}
-            Перевод: ${word.translate}
-            Сколько раз угадали: ${word.correctAnswersCount}
-            
-        """.trimIndent())
-    }
+    return dictionary
 }
-
-
