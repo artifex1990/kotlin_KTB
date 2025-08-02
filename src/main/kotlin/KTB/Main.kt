@@ -1,6 +1,7 @@
 package KTB
 
 import java.io.File
+import kotlin.random.Random
 
 const val SEPARATOR = '|'
 const val MAX_WORDS_FOR_KNOWS = 3
@@ -38,31 +39,39 @@ fun main() {
                     }
 
                     val questionWords = notLearnedList.shuffled().take(MAX_WORDS_FOR_EXERCISE)
-                    val correctAnswer = questionWords.random()
+                    val correctAnswerId = Random.nextInt(0, questionWords.size)
 
-                    println("${correctAnswer.original}:")
+                    println("${questionWords[correctAnswerId].original}:")
                     questionWords.forEachIndexed { i, word ->
                         println("${i + 1} - ${word.translate}")
                     }
-                    println("0 - выход")
+                    println("----------")
+                    println("0 - Меню")
 
                     print("Введите ваш ответ: ")
-                    val answer = readln().toInt()
+                    val userAnswerInput = readln().toInt()
 
                     when {
-                        answer == 0 -> break
+                        userAnswerInput == 0 -> break
 
-                        answer !in 1..MAX_WORDS_FOR_EXERCISE -> {
-                            println("Не правильный ввод!")
+                        userAnswerInput !in 1..MAX_WORDS_FOR_EXERCISE -> {
+                            println("Неправильный ввод!")
                             continue
                         }
 
-                        correctAnswer.original != questionWords[answer - 1].original -> {
-                            println("Не правильное слово! Правильное ${correctAnswer.translate}")
+                        correctAnswerId != userAnswerInput - 1 -> {
+                            println(
+                                "Неправильно! ${questionWords[correctAnswerId].original} " +
+                                        "- это ${questionWords[correctAnswerId].translate}"
+                            )
                             continue
                         }
 
-                        else -> println("Правильный ответ!")
+                        else -> {
+                            println("Правильно!")
+                            questionWords[correctAnswerId].correctAnswersCount++
+                            saveDictionary(dictionary)
+                        }
                     }
                 }
             }
@@ -111,4 +120,13 @@ fun loadDictionary(): List<Word> {
     }
 
     return dictionary
+}
+
+fun saveDictionary(dictionary: List<Word>) {
+    val fileWords: File = File("words.txt")
+    fileWords.writeText("")
+
+    dictionary.forEach { word ->
+        fileWords.appendText("${word.original}|${word.translate}|${word.correctAnswersCount}\n")
+    }
 }
