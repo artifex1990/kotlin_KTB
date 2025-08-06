@@ -3,10 +3,12 @@ package KTB
 import java.io.File
 
 private const val SEPARATOR = '|'
-private const val MAX_WORDS_FOR_KNOWS = 3
-private const val MAX_WORDS_FOR_EXERCISE = 4
+private const val EXCEPTION_INCORRECT_FILE = "Некорректный файл"
 
-class LearnWordsTrainer {
+class LearnWordsTrainer(
+    private val learnedAnswerCount: Int = 3,
+    private val countOfQuestionWords: Int = 4,
+) {
     private val dictionary: MutableList<Word> = mutableListOf()
     private val fileWords: File = File("words.txt")
     private var question: Question? = null
@@ -22,17 +24,23 @@ class LearnWordsTrainer {
             this.fileWords.appendText("cat${SEPARATOR}кошка${SEPARATOR}0\n")
         }
 
-        val lines: List<String> = this.fileWords.readLines()
-        for (line in lines) {
-            val parts = line.split(SEPARATOR)
-            this.dictionary.add(
-                Word(
-                    original = parts[0],
-                    translate = parts[1],
-                    correctAnswersCount = parts.getOrNull(2)?.toIntOrNull() ?: 0
+        try {
+            val lines: List<String> = this.fileWords.readLines()
+            for (line in lines) {
+                val parts = line.split(SEPARATOR)
+                this.dictionary.add(
+                    Word(
+                        original = parts[0],
+                        translate = parts[1],
+                        correctAnswersCount = parts.getOrNull(2)?.toIntOrNull() ?: 0
+                    )
                 )
-            )
+            }
+        } catch (e: IndexOutOfBoundsException) {
+            throw IllegalStateException(EXCEPTION_INCORRECT_FILE)
         }
+
+
     }
 
     private fun saveDictionary() {
@@ -44,7 +52,7 @@ class LearnWordsTrainer {
     }
 
     fun getStatistics(): Statistics {
-        val learnedCount = this.dictionary.filter { word -> word.correctAnswersCount >= MAX_WORDS_FOR_KNOWS }.size
+        val learnedCount = this.dictionary.filter { word -> word.correctAnswersCount >= this.learnedAnswerCount }.size
         val totalCount = this.dictionary.size
         val percent = (100.0 * learnedCount / totalCount).toInt()
 
@@ -53,26 +61,36 @@ class LearnWordsTrainer {
 
     fun getNextQuestion(): Question? {
         val notLearnedList = this.dictionary.filter { word ->
-            word.correctAnswersCount < MAX_WORDS_FOR_KNOWS
+            word.correctAnswersCount < this.learnedAnswerCount
         }
 
         if (notLearnedList.isEmpty()) {
             return null
         }
 
-        val questionWords = notLearnedList.shuffled().take(MAX_WORDS_FOR_EXERCISE)
+        val questionWords = if (notLearnedList.size < this.countOfQuestionWords) {
+            val learnedList = this.dictionary.filter { word ->
+                word.correctAnswersCount >= this.learnedAnswerCount
+            }.shuffled()
+            notLearnedList.shuffled().take(countOfQuestionWords) + learnedList.take(
+                this.countOfQuestionWords - notLearnedList.size
+            )
+        } else {
+            notLearnedList.shuffled().take(this.countOfQuestionWords)
+        }.shuffled()
+
         val correctAnswer = questionWords.random()
 
-        question = Question(
+        this.question = Question(
             questionWords,
             correctAnswer
         )
 
-        return question
+        return this.question
     }
 
     fun checkAnswer(userAnswerId: Int): Boolean = when {
-        userAnswerId !in 1..MAX_WORDS_FOR_EXERCISE -> {
+        userAnswerId !in 1..this.countOfQuestionWords -> {
             println("Неправильный ввод!")
             false
         }
