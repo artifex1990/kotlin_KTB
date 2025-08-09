@@ -1,7 +1,14 @@
 package KTB
 
+import java.lang.Exception
+
 fun main() {
-    val trainer = LearnWordsTrainer()
+    val trainer = try {
+        LearnWordsTrainer()
+    } catch (e: Exception) {
+        println("Невозможно загрузить словарь!")
+        return
+    }
 
     while (true) {
         println(
@@ -28,11 +35,16 @@ fun main() {
                     println(question.questionToString())
 
                     print("Введите ваш ответ: ")
-                    val userAnswerInput = readln().toInt()
+                    try {
+                        val userAnswerInput = readln().toInt()
 
-                    if (userAnswerInput == 0) break
+                        if (userAnswerInput == 0) break
 
-                    trainer.checkAnswer(userAnswerInput)
+                        trainer.checkAnswer(userAnswerInput)
+                    } catch (e: NumberFormatException) {
+                        println("Пожалуйста, введите целое число.")
+                        continue
+                    }
                 }
             }
 
