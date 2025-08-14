@@ -23,5 +23,9 @@ class TelegramBotService(token: String) {
     ).body()
 
     fun getMe(): String = clientSend(this.prepareRequest(this.urlGetMe))
-    fun getUpdates(): String = clientSend(this.prepareRequest(this.urlGetUpdates))
+    fun getUpdates(updateId: Int): String = clientSend(
+        this.prepareRequest(
+            "${this.urlGetUpdates}${"?offset=$updateId"}"
+        )
+    )
 }
