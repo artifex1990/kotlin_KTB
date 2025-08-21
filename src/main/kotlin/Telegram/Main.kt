@@ -10,17 +10,19 @@ fun main(args: Array<String>) {
     println(telegramBotService.getMe())
 
     println("GetUpdates")
+    val updateIdRegex: Regex = "\"update_id\":([0-9]+)".toRegex()
+    
     while(true) {
         Thread.sleep(MAX_TIME_SLEEP)
         val updates: String = telegramBotService.getUpdates(updateId)
-        val startUpdateId = updates.lastIndexOf("update_id")
-        val endUpdateId = updates.lastIndexOf(",\n\"message\"")
+        
+        val matchResult: MatchResult? = updateIdRegex.find(updates)
+        val groupsString = matchResult?.groups?.get(1)?.value
 
         println(updates)
 
-        if (startUpdateId == -1 || endUpdateId == -1) continue
+        if (groupsString.isNullOrEmpty()) continue
 
-        val updateIdString = updates.substring(startUpdateId + 11, endUpdateId)
-        updateId = updateIdString.toInt() + 1
+        updateId = groupsString.toInt() + 1
     }
 }
